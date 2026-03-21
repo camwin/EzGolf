@@ -86,6 +86,10 @@ class EzGolfAnnotator(TkinterDnD.Tk):
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.destroy)
 
+        view_menu = Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="View", menu=view_menu)
+        view_menu.add_command(label="Toggle Sidebar", command=self.toggle_sidebar)
+
         # Sidebar content
         tk.Button(self.side_panel, text="<< Hide Sidebar", command=lambda: self.toggle_sidebar()).pack(fill=tk.X, pady=5)
 
@@ -146,11 +150,11 @@ class EzGolfAnnotator(TkinterDnD.Tk):
         self.time_label = tk.Label(self.progress_frame, text="0:00 / 0:00", width=14, anchor="w")
         self.time_label.pack(side=tk.LEFT)
 
-        self.prev_frame_btn = tk.Button(self.progress_frame, text="<", command=self.frame_back, repeatdelay=500, repeatinterval=500)
-        self.prev_frame_btn.pack(side=tk.LEFT, padx=2)
+        self.prev_frame_btn = tk.Button(self.progress_frame, text="<", command=self.frame_back, repeatdelay=500, repeatinterval=500, width=5, font=("Arial", 10, "bold"))
+        self.prev_frame_btn.pack(side=tk.LEFT, padx=2, ipady=2)
  
-        self.next_frame_btn = tk.Button(self.progress_frame, text=">", command=self.frame_forward, repeatdelay=500, repeatinterval=500)
-        self.next_frame_btn.pack(side=tk.LEFT, padx=2)
+        self.next_frame_btn = tk.Button(self.progress_frame, text=">", command=self.frame_forward, repeatdelay=500, repeatinterval=500, width=5, font=("Arial", 10, "bold"))
+        self.next_frame_btn.pack(side=tk.LEFT, padx=2, ipady=2)
 
         self.progress_scale = ttk.Scale(self.progress_frame, orient="horizontal", from_=0, to=100, command=self.on_scale_scrub)
         self.progress_scale.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5,5))
@@ -162,11 +166,19 @@ class EzGolfAnnotator(TkinterDnD.Tk):
 
         # Bindings
         self.bind("<space>", lambda e: self.toggle_play())
-        self.bind("<Left>", lambda e: self.frame_back())
-        self.bind("<Right>", lambda e: self.frame_forward())
+        self.bind_all("<Left>", self.handle_left_key)
+        self.bind_all("<Right>", self.handle_right_key)
         self.bind("<Map>", self.on_map)
         self.bind("<Unmap>", self.on_unmap)
         self.bind_all("<Button-1>", self.remove_focus, add="+")
+
+    def handle_left_key(self, event):
+        if not isinstance(event.widget, (tk.Entry, ttk.Entry, ttk.Spinbox)):
+            self.frame_back()
+
+    def handle_right_key(self, event):
+        if not isinstance(event.widget, (tk.Entry, ttk.Entry, ttk.Spinbox)):
+            self.frame_forward()
 
     def remove_focus(self, event):
         try:
@@ -203,8 +215,8 @@ class EzGolfAnnotator(TkinterDnD.Tk):
         self.input_window.bind("<B1-Motion>", lambda e: self.on_mouse_move(e))
         self.input_window.bind("<ButtonRelease-1>", lambda e: self.on_mouse_up(e))
         self.input_window.bind("<space>", lambda e: self.toggle_play())
-        self.input_window.bind("<Left>", lambda e: self.frame_back())
-        self.input_window.bind("<Right>", lambda e: self.frame_forward())
+        self.input_window.bind("<Left>", self.handle_left_key)
+        self.input_window.bind("<Right>", self.handle_right_key)
 
         # Bind events to keep the overlay positioned correctly
         self.bind("<Configure>", self.update_overlay_geometry)
@@ -351,8 +363,17 @@ class EzGolfAnnotator(TkinterDnD.Tk):
             amount = self.frame_skip_var.get()
         except tk.TclError:
             amount = 1
-        for _ in range(max(1, amount)):
+            
+        amount = max(1, amount)
+        if amount == 1:
             self.player.command("frame-step")
+        else:
+            fps = self.player.container_fps or self.player.estimated_vf_fps
+            if fps:
+                self.player.seek(amount / fps, "relative", "exact")
+            else:
+                for _ in range(amount):
+                    self.player.command("frame-step")
 
     def frame_back(self):
         self.playing = False
@@ -362,8 +383,17 @@ class EzGolfAnnotator(TkinterDnD.Tk):
             amount = self.frame_skip_var.get()
         except tk.TclError:
             amount = 1
-        for _ in range(max(1, amount)):
+            
+        amount = max(1, amount)
+        if amount == 1:
             self.player.command("frame-back-step")
+        else:
+            fps = self.player.container_fps or self.player.estimated_vf_fps
+            if fps:
+                self.player.seek(-(amount / fps), "relative", "exact")
+            else:
+                for _ in range(amount):
+                    self.player.command("frame-back-step")
 
     def on_mouse_down(self, event):
         print(f"Mouse down event at ({event.x}, {event.y})") # For debugging
