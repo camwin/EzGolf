@@ -1,6 +1,6 @@
 # EzGolf 🏌️‍♂️
 
-Just download and run the .exe got get going on Windows. 
+Just download and run the .exe to get going on Windows. 
 
 **EzGolf** is a Python-based golf swing analyzer designed to help golfers break down their mechanics. By leveraging high-performance video playback, it provides a smooth interface for reviewing swing frames and identifying areas for improvement.
 
