@@ -14,6 +14,26 @@ class EzGolfAnnotator(TkinterDnD.Tk):
         self.title("EzGolf - Swing Analyzer")
         self.geometry("1280x800")
 
+        # App Icon Setup
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        ico_path = os.path.join(script_dir, "ezgolf.ico")
+        png_path = os.path.join(script_dir, "ezgolf.png")
+        jpg_path = os.path.join(script_dir, "ezgolf.jpg")
+
+        try:
+            if os.path.exists(ico_path):
+                self.iconbitmap(ico_path)
+            elif os.path.exists(png_path):
+                icon_img = tk.PhotoImage(file=png_path)
+                self.iconphoto(True, icon_img)
+            elif os.path.exists(jpg_path):
+                from PIL import Image, ImageTk
+                img = Image.open(jpg_path)
+                self.icon_photo = ImageTk.PhotoImage(img) # Keep a reference to prevent garbage collection
+                self.iconphoto(True, self.icon_photo)
+        except Exception as e:
+            print(f"Could not load app icon: {e}")
+
         # Layout Containers
         self.side_panel = tk.Frame(self, width=340, bg="#2c2c2c")
         self.side_panel.pack(side=tk.RIGHT, fill=tk.Y)
@@ -87,6 +107,25 @@ class EzGolfAnnotator(TkinterDnD.Tk):
         self.speed_label = tk.Label(self.side_panel, text="1.0×", bg="#2c2c2c", fg="white")
         self.speed_label.pack(pady=5)
 
+        # Frame Skip Options
+        tk.Label(self.side_panel, text="Frame Skipping", bg="#2c2c2c", fg="white").pack(pady=(5,0))
+        skip_opts_frame = tk.Frame(self.side_panel, bg="#2c2c2c")
+        skip_opts_frame.pack(pady=5, padx=15)
+
+        tk.Label(skip_opts_frame, text="Skip Amount:", bg="#2c2c2c", fg="#aaa").pack(side=tk.LEFT)
+        self.frame_skip_var = tk.IntVar(value=1)
+        skip_spin = ttk.Spinbox(skip_opts_frame, from_=1, to=30, textvariable=self.frame_skip_var, width=4, command=self.update_frame_skip)
+        skip_spin.pack(side=tk.LEFT, padx=(5, 10))
+        skip_spin.bind("<Return>", self.update_frame_skip)
+        skip_spin.bind("<FocusOut>", self.update_frame_skip)
+
+        tk.Label(skip_opts_frame, text="Hold FPS:", bg="#2c2c2c", fg="#aaa").pack(side=tk.LEFT)
+        self.auto_skip_fps_var = tk.IntVar(value=2)
+        fps_spin = ttk.Spinbox(skip_opts_frame, from_=1, to=30, textvariable=self.auto_skip_fps_var, width=4, command=self.update_auto_skip_rate)
+        fps_spin.pack(side=tk.LEFT, padx=(5, 0))
+        fps_spin.bind("<Return>", self.update_auto_skip_rate)
+        fps_spin.bind("<FocusOut>", self.update_auto_skip_rate)
+
         tk.Label(self.side_panel, text="Line Layers", bg="#2c2c2c", fg="white", font=("Arial", 12, "bold")).pack(pady=(15,5))
 
         self.layers_canvas = tk.Canvas(self.side_panel, bg="#2c2c2c", highlightthickness=0)
@@ -103,10 +142,10 @@ class EzGolfAnnotator(TkinterDnD.Tk):
         self.time_label = tk.Label(self.progress_frame, text="0:00 / 0:00", width=14, anchor="w")
         self.time_label.pack(side=tk.LEFT)
 
-        self.prev_frame_btn = tk.Button(self.progress_frame, text="<", command=self.frame_back)
+        self.prev_frame_btn = tk.Button(self.progress_frame, text="<", command=self.frame_back, repeatdelay=500, repeatinterval=500)
         self.prev_frame_btn.pack(side=tk.LEFT, padx=2)
-
-        self.next_frame_btn = tk.Button(self.progress_frame, text=">", command=self.frame_forward)
+ 
+        self.next_frame_btn = tk.Button(self.progress_frame, text=">", command=self.frame_forward, repeatdelay=500, repeatinterval=500)
         self.next_frame_btn.pack(side=tk.LEFT, padx=2)
 
         self.progress_scale = ttk.Scale(self.progress_frame, orient="horizontal", from_=0, to=100, command=self.on_scale_scrub)
@@ -123,6 +162,15 @@ class EzGolfAnnotator(TkinterDnD.Tk):
         self.bind("<Right>", lambda e: self.frame_forward())
         self.bind("<Map>", self.on_map)
         self.bind("<Unmap>", self.on_unmap)
+        self.bind_all("<Button-1>", self.remove_focus, add="+")
+
+    def remove_focus(self, event):
+        try:
+            # If clicking outside of an Entry or Spinbox, force the root window to take focus
+            if not isinstance(event.widget, (tk.Entry, ttk.Entry, ttk.Spinbox)):
+                self.focus_set()
+        except Exception:
+            pass
 
     def create_overlay(self):
         # 1. Visual Layer (Lines)
@@ -253,6 +301,25 @@ class EzGolfAnnotator(TkinterDnD.Tk):
         self.speed_label.config(text=f"{self.speed:.2f}×")
         self.player.speed = self.speed
 
+    def update_auto_skip_rate(self, event=None):
+        if not hasattr(self, 'prev_frame_btn'): return
+        try:
+            fps = self.auto_skip_fps_var.get()
+            if fps < 1: fps = 1
+            interval = int(1000 / fps)
+            self.prev_frame_btn.config(repeatinterval=interval)
+            self.next_frame_btn.config(repeatinterval=interval)
+            print(f"DEBUG: Hold FPS set to {fps} (Repeat interval: {interval}ms)")
+        except tk.TclError:
+            pass
+
+    def update_frame_skip(self, event=None):
+        try:
+            amount = self.frame_skip_var.get()
+            print(f"DEBUG: Skip Amount set to {amount}")
+        except tk.TclError:
+            pass
+
     def on_scrub_start(self, event):
         self.is_scrubbing = True
 
@@ -276,13 +343,23 @@ class EzGolfAnnotator(TkinterDnD.Tk):
         self.playing = False
         self.player.pause = True
         self.play_btn.config(text="Play")
-        self.player.command("frame-step")
+        try:
+            amount = self.frame_skip_var.get()
+        except tk.TclError:
+            amount = 1
+        for _ in range(max(1, amount)):
+            self.player.command("frame-step")
 
     def frame_back(self):
         self.playing = False
         self.player.pause = True
         self.play_btn.config(text="Play")
-        self.player.command("frame-back-step")
+        try:
+            amount = self.frame_skip_var.get()
+        except tk.TclError:
+            amount = 1
+        for _ in range(max(1, amount)):
+            self.player.command("frame-back-step")
 
     def on_mouse_down(self, event):
         print(f"Mouse down event at ({event.x}, {event.y})") # For debugging
