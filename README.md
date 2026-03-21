@@ -27,3 +27,4 @@ To run the source code, you will need:
    ```bash
    git clone [https://github.com/camwin/EzGolf.git](https://github.com/camwin/EzGolf.git)
    cd EzGolf
+   python ezGolf.py
