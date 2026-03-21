@@ -128,14 +128,18 @@ class EzGolfAnnotator(TkinterDnD.Tk):
 
         tk.Label(self.side_panel, text="Line Layers", bg="#2c2c2c", fg="white", font=("Arial", 12, "bold")).pack(pady=(15,5))
 
-        self.layers_canvas = tk.Canvas(self.side_panel, bg="#2c2c2c", highlightthickness=0)
-        self.layers_canvas.pack(fill=tk.BOTH, expand=True)
+        layers_container = tk.Frame(self.side_panel, bg="#2c2c2c")
+        layers_container.pack(fill=tk.BOTH, expand=True)
+
+        scrollbar = ttk.Scrollbar(layers_container, orient="vertical")
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.layers_canvas = tk.Canvas(layers_container, bg="#2c2c2c", highlightthickness=0, yscrollcommand=scrollbar.set)
+        self.layers_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.configure(command=self.layers_canvas.yview)
+
         self.layers_frame = tk.Frame(self.layers_canvas, bg="#2c2c2c")
         self.layers_canvas.create_window((0,0), window=self.layers_frame, anchor="nw")
-
-        scrollbar = ttk.Scrollbar(self.side_panel, orient="vertical", command=self.layers_canvas.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.layers_canvas.configure(yscrollcommand=scrollbar.set)
         self.layers_frame.bind("<Configure>", lambda e: self.layers_canvas.configure(scrollregion=self.layers_canvas.bbox("all")))
 
         # Progress + Play controls
@@ -153,8 +157,8 @@ class EzGolfAnnotator(TkinterDnD.Tk):
         self.progress_scale.bind("<ButtonPress-1>", self.on_scrub_start)
         self.progress_scale.bind("<ButtonRelease-1>", self.on_scrub_end)
 
-        self.play_btn = tk.Button(self.progress_frame, text="Play", command=lambda: self.toggle_play())
-        self.play_btn.pack(side=tk.RIGHT, padx=5)
+        self.play_btn = tk.Button(self.progress_frame, text="Play", command=lambda: self.toggle_play(), width=10, font=("Arial", 10, "bold"))
+        self.play_btn.pack(side=tk.RIGHT, padx=10, ipady=2)
 
         # Bindings
         self.bind("<space>", lambda e: self.toggle_play())
