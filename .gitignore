@@ -1,0 +1,10 @@
+# Binary and library files
+*.dll
+*.so
+*.dylib
+
+# Python-specific ignores
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
