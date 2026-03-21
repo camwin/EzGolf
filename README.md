@@ -13,7 +13,7 @@ Just download and run the .exe to get going on Windows.
 * **Language:** Python 3.x
 * **Video Engine:** [mpv](https://mpv.io/) (via `mpv-1.dll`)
 * **Graphics Support:** Direct3D Compiler (`d3dcompiler_43.dll`)
-* **UI/Assets:** Custom branding and splash screen (`ezgolf.jpg`)
+* **UI/Assets:** Cool nostalgic icon maybe you know it too (`ezgolf.jpg`)
 
 ## 🚀 Getting Started
 
