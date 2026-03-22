@@ -39,4 +39,9 @@ To run the source code, you will need:
   <img src="567302767-f00454e4-baf1-4215-b4e5-4d9b3d0bbe62.png" alt="Swing Path Drawing" />
 
   <img src="567303133-2ed9fb60-ae68-4a61-baab-6b57b0fb5599.png" alt="Side-by-Side Analysis" />
+
+  <img src="posture_1.png" alt="Posture Analysis" />
+
+  <img src="posture_2.png" alt="Posture Analysis" />
+
 </p>

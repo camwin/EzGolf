@@ -150,19 +150,19 @@ class EzGolfAnnotator(TkinterDnD.Tk):
         self.time_label = tk.Label(self.progress_frame, text="0:00 / 0:00", width=14, anchor="w")
         self.time_label.pack(side=tk.LEFT)
 
-        self.prev_frame_btn = tk.Button(self.progress_frame, text="<", command=self.frame_back, repeatdelay=500, repeatinterval=500, width=5, font=("Arial", 10, "bold"))
-        self.prev_frame_btn.pack(side=tk.LEFT, padx=2, ipady=2)
+        self.prev_frame_btn = tk.Button(self.progress_frame, text="<", command=self.frame_back, repeatdelay=500, repeatinterval=500, width=8, font=("Arial", 10, "bold"))
+        self.prev_frame_btn.pack(side=tk.LEFT, padx=(5, 2), ipady=2)
+
+        self.play_btn = tk.Button(self.progress_frame, text="Play", command=lambda: self.toggle_play(), width=8, font=("Arial", 10, "bold"))
+        self.play_btn.pack(side=tk.LEFT, padx=2, ipady=2)
  
-        self.next_frame_btn = tk.Button(self.progress_frame, text=">", command=self.frame_forward, repeatdelay=500, repeatinterval=500, width=5, font=("Arial", 10, "bold"))
-        self.next_frame_btn.pack(side=tk.LEFT, padx=2, ipady=2)
+        self.next_frame_btn = tk.Button(self.progress_frame, text=">", command=self.frame_forward, repeatdelay=500, repeatinterval=500, width=8, font=("Arial", 10, "bold"))
+        self.next_frame_btn.pack(side=tk.LEFT, padx=(2, 10), ipady=2)
 
         self.progress_scale = ttk.Scale(self.progress_frame, orient="horizontal", from_=0, to=100, command=self.on_scale_scrub)
         self.progress_scale.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5,5))
         self.progress_scale.bind("<ButtonPress-1>", self.on_scrub_start)
         self.progress_scale.bind("<ButtonRelease-1>", self.on_scrub_end)
-
-        self.play_btn = tk.Button(self.progress_frame, text="Play", command=lambda: self.toggle_play(), width=10, font=("Arial", 10, "bold"))
-        self.play_btn.pack(side=tk.RIGHT, padx=10, ipady=2)
 
         # Bindings
         self.bind("<space>", lambda e: self.toggle_play())
