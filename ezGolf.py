@@ -57,7 +57,9 @@ class EzGolfAnnotator(TkinterDnD.Tk):
         self.player.loop = False
         self.player['keep-open'] = 'yes'
         self.player.speed = 1.0
+        self.player.mute = True
         self.playing = False
+        self.is_muted = tk.BooleanVar(value=True)
         self.current_video_name = "No video loaded"
 
         # The canvas for drawing will be created in a separate, transparent overlay window.
@@ -163,6 +165,9 @@ class EzGolfAnnotator(TkinterDnD.Tk):
         self.progress_scale.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5,5))
         self.progress_scale.bind("<ButtonPress-1>", self.on_scrub_start)
         self.progress_scale.bind("<ButtonRelease-1>", self.on_scrub_end)
+
+        self.mute_chk = tk.Checkbutton(self.progress_frame, text="Mute", variable=self.is_muted, command=self.toggle_mute)
+        self.mute_chk.pack(side=tk.RIGHT, padx=5)
 
         # Bindings
         self.bind("<space>", lambda e: self.toggle_play())
@@ -311,6 +316,10 @@ class EzGolfAnnotator(TkinterDnD.Tk):
         self.playing = not self.playing
         self.player.pause = not self.playing
         self.play_btn.config(text="Pause" if self.playing else "Play")
+        
+    def toggle_mute(self):
+        if self.player:
+            self.player.mute = self.is_muted.get()
 
     def update_speed(self, val):
         self.speed = float(val)
@@ -484,7 +493,7 @@ class EzGolfAnnotator(TkinterDnD.Tk):
             self.canvas.delete("layer")
             for layer in self.layers:
                 if layer["visible"]:
-                    self.canvas.create_line(layer["start"], layer["end"], fill=layer["color"], width=3, tags="layer")
+                    self.canvas.create_line(layer["start"][0], layer["start"][1], layer["end"][0], layer["end"][1], fill=layer["color"], width=3, tags="layer")
 
         self.after(100, self.update_loop)
 
