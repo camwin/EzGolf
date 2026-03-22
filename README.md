@@ -42,6 +42,6 @@ To run the source code, you will need:
 
   <img src="posture_1.png" alt="Posture Analysis" />
 
-  <img src="posture_2.png" alt="Posture Analysis" />
+  <img src="homa.png" alt="Posture Analysis" />
 
 </p>
