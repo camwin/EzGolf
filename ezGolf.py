@@ -54,12 +54,13 @@ class EzGolfAnnotator(TkinterDnD.Tk):
                               gpu_api="d3d11",  # try "auto" or "vulkan" if black
                               input_default_bindings=False,
                               input_vo_keyboard=False)
-        self.player.loop = False
         self.player['keep-open'] = 'yes'
         self.player.speed = 1.0
         self.player.mute = True
+        self.player.loop = True
         self.playing = False
         self.is_muted = tk.BooleanVar(value=True)
+        self.is_looping = tk.BooleanVar(value=True)
         self.current_video_name = "No video loaded"
 
         # The canvas for drawing will be created in a separate, transparent overlay window.
@@ -168,6 +169,9 @@ class EzGolfAnnotator(TkinterDnD.Tk):
 
         self.mute_chk = tk.Checkbutton(self.progress_frame, text="Mute", variable=self.is_muted, command=self.toggle_mute)
         self.mute_chk.pack(side=tk.RIGHT, padx=5)
+
+        self.loop_chk = tk.Checkbutton(self.progress_frame, text="Loop", variable=self.is_looping, command=self.toggle_loop)
+        self.loop_chk.pack(side=tk.RIGHT, padx=5)
 
         # Bindings
         self.bind("<space>", lambda e: self.toggle_play())
@@ -320,6 +324,10 @@ class EzGolfAnnotator(TkinterDnD.Tk):
     def toggle_mute(self):
         if self.player:
             self.player.mute = self.is_muted.get()
+
+    def toggle_loop(self):
+        if self.player:
+            self.player.loop = self.is_looping.get()
 
     def update_speed(self, val):
         self.speed = float(val)
